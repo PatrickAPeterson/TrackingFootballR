@@ -1,0 +1,13 @@
+Package: trackingfootballR
+Title: Parse Data From Tracking Football API
+Version: 0.0.0.9000
+Authors@R: 
+    person("Austin", "Plummer", , "ajplummer44@gmail.com", role = c("aut", "cre"))
+    person("Patrick", "Peterson", , "ppeterson@scarletknights.com", role = c("aut", "cre"))
+Description: Convenient functions for parsing responses from Tracking Football API, deals with nested data 
+    and the conversion to a useable dataframe.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports: httr, jsonlite, dplyr
