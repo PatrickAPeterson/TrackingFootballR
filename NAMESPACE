@@ -2,6 +2,12 @@
 
 export(get_all_hs_player_details)
 export(get_all_ncaa_player_details)
+export(get_all_player_details)
+export(get_bestTrackEvent)
+export(get_highSchools)
+export(get_hsCombines)
+export(get_links)
+export(get_playerDetails)
 import(dplyr)
 import(httr)
 import(jsonlite)
