@@ -15,3 +15,8 @@ all player collegeProduction details as a list object
 \description{
 Parse College Production data from Tracking Football Player List
 }
+\examples{
+\dontrun{
+df <- get_collegeProduction(player_list)
+}
+}
