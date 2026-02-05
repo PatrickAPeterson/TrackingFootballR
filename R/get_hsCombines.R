@@ -10,6 +10,7 @@
 #' @import dplyr
 #' @import purrr
 #' @import tidyr
+#' @import stringr
 
 
 get_hsCombines <- function(player_list) {
@@ -25,7 +26,7 @@ get_hsCombines <- function(player_list) {
 
       # 1. If there is no combine_code, then create positions_all string as NA
       positions_all = if ("combine_code" %in% names(.)) {
-        str_replace(toString(unique(unlist(strsplit(combine_code, ",\\s*")))), "NA, |, NA", "")}
+        stringr::str_replace(toString(unique(unlist(strsplit(combine_code, ",\\s*")))), "NA, |, NA", "")}
       else {NA_character_},
 
       # 2. If there is no combine_code, then create combine_perc as NA

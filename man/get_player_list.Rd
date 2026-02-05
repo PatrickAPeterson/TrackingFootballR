@@ -2,6 +2,7 @@
 % Please edit documentation in R/get_player_list.R
 \name{get_player_list}
 \alias{get_player_list}
+\alias{get_all_player_details}
 \title{Get Player List}
 \usage{
 get_player_list(
