@@ -13,8 +13,7 @@
 #' \dontrun{
 #' ncaa_historical <- get_player_list(api_key, updated_since = "2020-01-01", player_type = "college")
 #' }
-#' @export get_player_list get_all_player_details
-#' @aliases get_all_player_details
+#' @export
 #'
 #' @import httr
 #' @import jsonlite

@@ -8,11 +8,12 @@
 #' @import httr
 #' @import jsonlite
 #' @import dplyr
+#' @import purrr
 
 
 get_playerDetails <- function(player_list) {
 
-  map_dfr(player_list,
+  purrr::map_dfr(player_list,
           ~ .x[c("id", "pffId", "247Key", "ncaaId", "ryzerId",
                  "ssaId", "uniqueId", "firstName", "lastName", "slug",
                  "photoUrl", "dob", "locationFlag", "transferStatus", "transferYear",
@@ -22,9 +23,9 @@ get_playerDetails <- function(player_list) {
                  "hasCollegeTeam", "hasNFLTeam", "cellPhone", "email", "address",
                  "cityStateZip", "parentContact", "parentNames", "headCoach", "headCoachContact",
                  "createdAt", "updatedAt", "on3Id", "collegeGSIS", "nflGSIS", "ryzerUrl")]) %>%
-    rename(playerId = "id") %>%
-    distinct(playerId, .keep_all = TRUE) %>%
-    rename_with(~ paste0("tf_playerDetails_", .), .cols = -c(playerId)) %>%
-    rename("tf_playerId" = playerId)
+    dplyr::rename(playerId = "id") %>%
+    dplyr::distinct(playerId, .keep_all = TRUE) %>%
+    dplyr::rename_with(~ paste0("tf_playerDetails_", .), .cols = -c(playerId)) %>%
+    dplyr::rename("tf_playerId" = playerId)
 
 }

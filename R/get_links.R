@@ -8,11 +8,12 @@
 #' @import httr
 #' @import jsonlite
 #' @import dplyr
+#' @import purrr
 
 
 get_links <- function(player_list) {
 
-  imap_dfr(
+  purrr::imap_dfr(
     player_list,
     function(player, idx) {
 

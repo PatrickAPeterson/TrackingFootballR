@@ -8,107 +8,43 @@
 #' @import httr
 #' @import jsonlite
 #' @import dplyr
+#' @import purrr
+#' @import tidyr
 
 
 get_hsCombines <- function(player_list) {
 
-  map_dfr(player_list, "hsCombines") %>%
-    select(-one_of("combine")) %>%
-    rename_with(~ paste0("tf_hsCombines_", .), .cols = -c(playerId)) %>%
-    rename("tf_playerId" = playerId) %>%
-    mutate(tf_hsCombines_isHandTime = ifelse(grepl("hand timed", tf_hsCombines_city, ignore.case = TRUE), 1, 0),
-           tf_hsCombines_isLaserTime = ifelse(grepl("laser", tf_hsCombines_city, ignore.case = TRUE), 1, 0),
-           .after = 3) %>%
-    group_by(tf_playerId) %>%
-    mutate(combineDate_rufb = as.Date(tf_hsCombines_combineDate),
-           daysSinceCombineDate_rufb = as.numeric(as.Date(today()) - combineDate_rufb),
-           mostRecentCombine_rufb = min(daysSinceCombineDate_rufb)) %>%
-    summarise(
+  purrr::map_dfr(player_list, "hsCombines") %>%
+    tidyr::unnest("combine", names_sep = "_", keep_empty = TRUE) %>%
+    dplyr::select(-one_of("combine")) %>%
+    dplyr::group_by_all() %>%
+    dplyr::distinct(playerId, .keep_all = TRUE) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(playerId) %>%
+    dplyr::mutate(
 
-      tf_hsCombines_40mDash_recent = if(any(tf_hsCombines_isLaserTime == 1 & !is.na(tf_hsCombines_40mDash))) {
-        tf_hsCombines_40mDash[which.min(ifelse(tf_hsCombines_isLaserTime == 1 & !is.na(tf_hsCombines_40mDash), daysSinceCombineDate_rufb, NA))]
-      } else if(all(is.na(tf_hsCombines_40mDash))) {
-        NA_real_
-      } else {
-        min(tf_hsCombines_40mDash, na.rm = TRUE)
-      },
+      # 1. If there is no combine_code, then create positions_all string as NA
+      positions_all = if ("combine_code" %in% names(.)) {
+        str_replace(toString(unique(unlist(strsplit(combine_code, ",\\s*")))), "NA, |, NA", "")}
+      else {NA_character_},
 
+      # 2. If there is no combine_code, then create combine_perc as NA
+      combine_perc = if ("combine_combine" %in% names(.)) {combine_combine}
+      else {NA_character_},
 
-      tf_hsCombines_10Split_recent = if(any(tf_hsCombines_isLaserTime == 1 & !is.na(tf_hsCombines_10Split))) {
-        tf_hsCombines_10split[which.min(ifelse(tf_hsCombines_isLaserTime == 1 & !is.na(tf_hsCombines_10split), daysSinceCombineDate_rufb, NA))]
-      } else if(all(is.na(tf_hsCombines_10Split))) {
-        NA_real_
-      } else {
-        min(tf_hsCombines_10Split, na.rm = TRUE)
-      },
+      # 3. If there is no combine_code, then create combine_code as NA
+      combine_code = if ("combine_code" %in% names(.)) {combine_code}
+      else {NA_character_},
 
+      # 4. If there is no combine_isPrimary, then create combine_isPrimary as NA
+      combine_isPrimary = if ("combine_isPrimary" %in% names(.)) {combine_isPrimary}
+      else {NA_character_},
 
-      tf_hsCombines_height_recent =
-        if(all(is.na(tf_hsCombines_height))) {
-          NA_real_
-        } else {
-          tf_hsCombines_height[which.min(daysSinceCombineDate_rufb)]
-        },
-
-
-      tf_hsCombines_weight_recent =
-        if(all(is.na(tf_hsCombines_weight))) {
-          NA_real_
-        } else {
-          tf_hsCombines_weight[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_wingspan_recent =
-        if(all(is.na(tf_hsCombines_wingspan))) {
-          NA_real_
-        } else {
-          tf_hsCombines_wingspan[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_arm_recent =
-        if(all(is.na(tf_hsCombines_arm))) {
-          NA_real_
-        } else {
-          tf_hsCombines_arm[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_hand_recent =
-        if(all(is.na(tf_hsCombines_hand))) {
-          NA_real_
-        } else {
-          tf_hsCombines_hand[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_3Cone_recent =
-        if(all(is.na(tf_hsCombines_3Cone))) {
-          NA_real_
-        } else {
-          tf_hsCombines_3Cone[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_shuttle_recent =
-        if(all(is.na(tf_hsCombines_shuttle))) {
-          NA_real_
-        } else {
-          tf_hsCombines_shuttle[which.min(daysSinceCombineDate_rufb)]
-        },
-
-
-      tf_hsCombines_verticalJump_recent =
-        if(all(is.na(tf_hsCombines_verticalJump))) {
-          NA_real_
-        } else {
-          tf_hsCombines_verticalJump[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      tf_hsCombines_broadJump_recent =
-        if(all(is.na(tf_hsCombines_broadJump))) {
-          NA_real_
-        } else {
-          tf_hsCombines_broadJump[which.min(daysSinceCombineDate_rufb)]
-        },
-
-      .groups = "drop"
-    ) %>%
-    mutate(across(everything(), na_if, 0))
+      createdAt  = as.character(createdAt),
+      updatedAt  = as.character(updatedAt),
+      combineDate = as.character(combineDate)) %>%
+    dplyr::select(-one_of("combine_combine")) %>% # Remove combine_combine if persists
+    dplyr::mutate(across(everything(), ~ ifelse(trimws(.) == "", NA, .))) %>%
+    dplyr::rename_with(~ paste0("tf_hsCombines_", .), .cols = -c(playerId)) %>%
+    dplyr::rename("tf_playerId" = playerId)
 }
