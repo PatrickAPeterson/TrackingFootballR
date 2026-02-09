@@ -8,11 +8,12 @@
 #' @import httr
 #' @import jsonlite
 #' @import dplyr
+#' @import tibble
 
 
 get_bestTrackEvent <- function(player_list) {
 
-  imap_dfr(
+  purrr::imap_dfr(
     player_list,
     function(player, idx) {
 
@@ -29,10 +30,10 @@ get_bestTrackEvent <- function(player_list) {
 
       # bestTrackEvent map the 2nd level list, do not change the 'ev' or 'ev-name' conventions
       # the date neets to be fixed, not sure how
-      imap_dfr(
+      purrr::imap_dfr(
         player$bestTrackEvent,
         function(ev, ev_name) {
-          tibble(
+          tibble::tibble(
             tf_playerId   = pid,
             tf_bestTrackEvent_event      = ev_name,
             tf_bestTrackEvent_date       = as.character(ev$date),
