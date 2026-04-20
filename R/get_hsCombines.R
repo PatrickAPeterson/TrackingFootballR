@@ -136,5 +136,6 @@ get_hsCombines <- function(player_list) {
                             "heightPerc", "weightPerc",  "wingspanPerc"))) %>%
     dplyr::mutate(across(everything(), ~ ifelse(trimws(.) == "", NA, .))) %>%
     dplyr::rename_with(~ paste0("tf_hsCombines_", .), .cols = -c(playerId)) %>%
-    dplyr::rename("tf_playerId" = playerId)
+    dplyr::rename("tf_playerId" = playerId) %>%
+    mutate(across(contains("code"), as.character))
 }
