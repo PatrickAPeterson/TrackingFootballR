@@ -35,7 +35,7 @@ get_player_list <- function(api_key,
   count_resp <- httr::GET(
     url = paste0(base_url, "count-players-updated-since"),     # Count players updated since endpoint
     query = list(
-      date = updated_since,     # Players updated since this date WRITE INTO THE FUNCTION
+      date = updated_since,     # Players updated since this date
       playerType = player_type     # Filter for player types
     ),
     httr::add_headers("api-key" = api_key)     # Attach api key as a header
@@ -61,7 +61,7 @@ get_player_list <- function(api_key,
     )
     httr::stop_for_status(resp)     # Stop if a request fails
     player_page <- jsonlite::fromJSON(
-      httr::content(resp, as = "text", encoding = "UTF-8")) # Parse JSON; returns a huge fucking list or data.frame
+      httr::content(resp, as = "text", encoding = "UTF-8")) # Parse JSON; returns a huge list or data.frame
 
     if (length(player_page) == 0) break # If no data/page is returned, break loop early
 

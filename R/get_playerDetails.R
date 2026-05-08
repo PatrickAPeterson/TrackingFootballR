@@ -26,6 +26,12 @@ get_playerDetails <- function(player_list) {
     dplyr::rename(playerId = "id") %>%
     dplyr::distinct(playerId, .keep_all = TRUE) %>%
     dplyr::rename_with(~ paste0("tf_playerDetails_", .), .cols = -c(playerId)) %>%
-    dplyr::rename("tf_playerId" = playerId)
+    dplyr::rename("tf_playerId" = playerId) %>%
+    (\(x) if ("tf_playerDetails_pffId" %in% names(x)) dplyr::mutate(x,
+                                                    tf_playerDetails_pffId = dplyr::case_when(tf_playerDetails_pffId == "0" ~ NA_character_,
+                                                                                              TRUE ~ tf_playerDetails_pffId)) else x)() %>%
+    # Replace all occurrences of null with NA across all columns
+    mutate(across(everything(), ~ replace(., . == "null", NA)))
+
 
 }

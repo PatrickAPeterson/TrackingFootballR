@@ -25,9 +25,14 @@ get_highSchools <- function(player_list) {
     dplyr::filter(positions_isPrimary == TRUE) %>%
     dplyr::select(-c("id")) %>%
     dplyr::distinct(playerId, .keep_all = TRUE) %>%
+    mutate(heightPerc = map(heightPerc, as.data.frame)) %>%
+    mutate(weightPerc = map(weightPerc, as.data.frame)) %>%
     tidyr::unnest("heightPerc", names_sep = "_") %>%
     tidyr::unnest("weightPerc", names_sep = "_") %>%
-    dplyr::filter(heightPerc_code == positions_code & weightPerc_code == positions_code) %>%
+    dplyr::filter((heightPerc_code == positions_code & weightPerc_code == positions_code) |
+                    (is.na(heightPerc_code) &
+                       is.na(weightPerc_code) &
+                       !is.na(positions_code))) %>%
     dplyr::select(-c(isPrimary, positions_id, positions_playerId, positions_createdAt,
               positions_updatedAt, weightPerc_code, heightPerc_code)) %>%
     dplyr::rename_with(~ paste0("tf_highSchools_", .), .cols = -c(playerId)) %>%
