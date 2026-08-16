@@ -40,12 +40,16 @@ get_bestTrackEvent <- function(player_list) {
       events <- player$bestTrackEvent
       if (!is.list(events)) events <- as.list(events)
 
-      # Normally a named map of event objects ("100m" = list(date = , meet = , ...)).
-      # Some players come back as a single unwrapped event instead, so the elements
-      # are scalars rather than lists. Wrap it so we emit one row with an unknown
-      # event name, instead of iterating the fields and erroring on ev$date.
-      if (!any(vapply(events, is.list, logical(1)))) {
-        events <- stats::setNames(list(events), NA_character_)
+      # Normally a named map of event objects ("event_100m" = list(date = , meet = , ...)).
+      # Some players come back with one event's fields spliced into the top level
+      # instead of nested under an event name, either on their own or alongside
+      # properly nested events. Re-wrap those loose scalars as a single unnamed
+      # event so they aren't iterated as if each field were its own event.
+      is_event <- vapply(events, is.list, logical(1))
+      loose <- events[!is_event]
+      events <- events[is_event]
+      if (length(loose) > 0) {
+        events <- c(events, stats::setNames(list(loose), NA_character_))
       }
 
       # bestTrackEvent map the 2nd level list, do not change the 'ev' or 'ev-name' conventions
