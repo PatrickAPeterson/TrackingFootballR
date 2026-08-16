@@ -11,6 +11,15 @@
 #' @import tibble
 
 
+# Pulls one event field, returning NA rather than failing when the event is not a
+# list or the field is absent. Keeps every column length-1 so tibble() can bind.
+tf_event_field <- function(ev, field) {
+  if (!is.list(ev)) return(NA_character_)
+  val <- ev[[field]]
+  if (is.null(val) || length(val) == 0) return(NA_character_)
+  as.character(val)[1]
+}
+
 get_bestTrackEvent <- function(player_list) {
 
   purrr::imap_dfr(
@@ -28,18 +37,29 @@ get_bestTrackEvent <- function(player_list) {
       # The first level playerId is just listed as id but in other tables (not bestTrackEvent)
       pid <- player$playerId %||% player$id
 
+      events <- player$bestTrackEvent
+      if (!is.list(events)) events <- as.list(events)
+
+      # Normally a named map of event objects ("100m" = list(date = , meet = , ...)).
+      # Some players come back as a single unwrapped event instead, so the elements
+      # are scalars rather than lists. Wrap it so we emit one row with an unknown
+      # event name, instead of iterating the fields and erroring on ev$date.
+      if (!any(vapply(events, is.list, logical(1)))) {
+        events <- stats::setNames(list(events), NA_character_)
+      }
+
       # bestTrackEvent map the 2nd level list, do not change the 'ev' or 'ev-name' conventions
       # the date neets to be fixed, not sure how
       purrr::imap_dfr(
-        player$bestTrackEvent,
+        events,
         function(ev, ev_name) {
           tibble::tibble(
             tf_playerId   = pid,
-            tf_bestTrackEvent_event      = ev_name,
-            tf_bestTrackEvent_date       = as.character(ev$date),
-            tf_bestTrackEvent_meet       = as.character(ev$meet),
-            tf_bestTrackEvent_percentile = as.character(ev$percentile),
-            tf_bestTrackEvent_performance = as.character(ev$performance)
+            tf_bestTrackEvent_event      = if (is.na(ev_name)) NA_character_ else as.character(ev_name),
+            tf_bestTrackEvent_date       = tf_event_field(ev, "date"),
+            tf_bestTrackEvent_meet       = tf_event_field(ev, "meet"),
+            tf_bestTrackEvent_percentile = tf_event_field(ev, "percentile"),
+            tf_bestTrackEvent_performance = tf_event_field(ev, "performance")
           )
         }
       )
